@@ -7,6 +7,13 @@ import glob
 import cortex.polyutils
 import h5py
 
+from scipy import stats
+import numpy as np
+import scipy as sp
+import nibabel as nb
+import cifti
+import pickle
+
 idxs = h5py.File('/tank/shared/timeless/atlases/cifti_indices.hdf5', "r")
 lidxs = np.array(idxs['Left_indices'])
 ridxs = np.array(idxs['Right_indices'])
@@ -179,4 +186,133 @@ class participant:
                 
                 
         
+class Ciftihandler(object):
+
+    """Ciftihandler
+        This is a utility for loading, splitting and saving cifi data.
+    """
+
+    def __init__(self,dfile="/scratch/2019/visual/hcp_movie/subjects/999999/tfMRI_MOVIE1_7T_AP_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries_sg_psc.nii"):        
+        self.dfile=dfile
+        self.get_brain_model()
+        self.load_data()
         
+    def load_data(self):
+        """ load_data
+        """ 
+        
+        self.img=nb.load(self.dfile)
+        self.header=self.img.nifti_header
+        self.brain_models = self.img.header.get_axis(1)  # Assume we know this
+        
+    def get_brain_model(self):
+        self.brainmodel= cifti.read(self.dfile)[1][1]
+        
+    def get_data(self):
+        """ get_data
+        Loads the cifti data into memory.
+        """ 
+        
+        self.load_data()
+        self.data = self.img.get_fdata(dtype=np.float32)
+        
+        
+    def surf_data_from_cifti(self,data, axis, surf_name):
+        """ surf_data_from_cifti
+        Gets surface data from cifti file.
+        """ 
+        assert isinstance(axis, nb.cifti2.BrainModelAxis)
+        if not hasattr(self,'vtx_indices'):
+            self.vtx_indices=[]
+        for name, data_indices, model in axis.iter_structures():  # Iterates over volumetric and surface structures
+            
+            if name == surf_name:                                 # Just looking for a surface
+                data = data.T[data_indices]    
+                vtx_indices = model.vertex
+                self.vtx_indices.append(data_indices)
+                # Generally 1-N, except medial wall vertices
+                surf_data = np.zeros((vtx_indices.max() + 1,) + data.shape[1:], dtype=data.dtype)
+                #print(surf_data.shape)
+                surf_data[vtx_indices] = data
+                return surf_data
+            
+        raise ValueError(f"No structure named {surf_name}")
+
+    def volume_from_cifti(self,data, axis, header):
+        """ volume_from_cifti
+        Gets volume data from cifti file
+        """ 
+        
+        self.affine=axis.affine
+        assert isinstance(axis, nb.cifti2.BrainModelAxis)
+        data = data.T[axis.volume_mask]                          # Assume brainmodels axis is last, move it to front
+        self.volmask = axis.volume_mask                               # Which indices on this axis are for voxels?
+        vox_indices = tuple(axis.voxel[axis.volume_mask].T)      # ([x0, x1, ...], [y0, ...], [z0, ...])
+        self.test=axis.voxel
+        vol_data = np.zeros(axis.volume_shape + data.shape[1:],  # Volume + any extra dimensions
+                            dtype=data.dtype)
+        vol_data[vox_indices] = data  
+        self.vox_flat=np.where(self.volmask)[0]
+        self.vox_indices=vox_indices
+        
+        return nb.Nifti1Image(vol_data, axis.affine) 
+    
+    
+
+    def decompose_cifti(self,data):
+        """ decompose_cifti
+        Decomposes the data in the cifti_file
+        """ 
+        
+        self.subcortex=self.volume_from_cifti(data,self.brain_models, header=self.img.nifti_header)
+        self.surf_left=self.surf_data_from_cifti(data,self.brain_models, "CIFTI_STRUCTURE_CORTEX_LEFT")
+        self.surf_right=self.surf_data_from_cifti(data,self.brain_models, "CIFTI_STRUCTURE_CORTEX_RIGHT")
+        self.surface=np.vstack([self.surf_left,self.surf_right])
+        
+        if data.ndim==1:
+            self.surface=np.concatenate([surf_left,surf_right])
+        else: 
+            self.surface=np.vstack([surf_left,surf_right])
+            
+        
+        
+    def decompose_data(self,data):
+        subcortex=self.volume_from_cifti(data,self.brain_models, header=self.header)
+        surf_left=self.surf_data_from_cifti(data,self.brain_models, "CIFTI_STRUCTURE_CORTEX_LEFT")
+        surf_right=self.surf_data_from_cifti(data,self.brain_models, "CIFTI_STRUCTURE_CORTEX_RIGHT")
+        
+        if data.ndim==1:
+            surface=np.concatenate([surf_left,surf_right])
+        else: 
+            surface=np.vstack([surf_left,surf_right])
+            
+        return surface,subcortex
+    
+    def recompose_data(self,ldat,rdat,sdat):
+        
+        empt=np.zeros(self.data.shape[-1])
+        test_dat=np.array(range(self.data.shape[-1]))
+        split_testdat=self.decompose_data(test_dat)
+        
+        linds=split_testdat[0][:int((split_testdat[0].shape[-1])/2)]
+        rinds=split_testdat[0][int((split_testdat[0].shape[-1])/2):]
+
+        subc=sdat[self.vox_indices]
+        empt[self.vox_flat]=subc
+        empt[linds]=ldat
+        empt[rinds]=rdat
+    
+        return empt.astype(int)
+    
+    def save_cii(self,data, names,filename):
+        """ save_cii
+        Saves data out to a cifti file, using the brainmodel.
+        """ 
+        cifti.write(filename, data, (cifti.Scalar.from_names(names), self.brainmodel))
+        
+    def save_subvol(self,data,filename):
+        """ save_subvol
+        Saves subcortical data out to a nifti file. 
+        """ 
+        
+        nb.save(data,filename) 
