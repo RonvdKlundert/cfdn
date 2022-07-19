@@ -1,0 +1,3 @@
+#!/bin/bash
+cd /tank/klundert/projects/cfdn/scripts/
+python 1_CF_fit_hcp.py 100610 23 10 7
