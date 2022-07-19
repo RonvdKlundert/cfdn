@@ -8,7 +8,7 @@ import time
 import sys
 import h5py
 from nilearn.surface import load_surf_data
-sys.path.append('/tank/klundert/projects/cfdn/scripts/')
+sys.path.append('/home/klundert/cfdn/scripts/')
 
 
 
@@ -17,7 +17,7 @@ sys.path.append('/tank/klundert/projects/cfdn/scripts/')
 #################################
 subs = [100610]
 n_jobs = 23
-ROImask = np.load(f'/tank/klundert/projects/cfdn/data/CF_fit_utils/visual_mask_hcp.npy')
+ROImask = np.load(f'/home/klundert/cfdn/data/CF_fit_utils/visual_mask_hcp.npy')
 
 
 # roi_index_dict = {

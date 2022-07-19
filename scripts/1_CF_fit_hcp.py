@@ -44,14 +44,14 @@ slice_n = int(sys.argv[3])
 chunk_n = int(sys.argv[4])
 
 
-subsurface_verts = np.load(f'/scratch/2021/nprf_ss/derivatives/cf-fits/Surface_dm/subsurface_verts.npy')
-distance_matrix = np.load(f'/scratch/2021/nprf_ss/derivatives/cf-fits/Surface_dm/distance_matrix.npy')
-logvisual_distance_matrix = np.load(f'/scratch/2021/nprf_ss/derivatives/cf-fits/Surface_dm/logvisual_distance_matrix.npy')
-visual_distance_matrix = np.load(f'/scratch/2021/nprf_ss/derivatives/cf-fits/Surface_dm/visual_distance_matrix.npy')
+subsurface_verts = np.load(f'/home/klundert/cfdn/data/CF_fit_utils/subsurface_verts.npy')
+distance_matrix = np.load(f'/home/klundert/cfdn/data/CF_fit_utils/distance_matrix.npy')
+logvisual_distance_matrix = np.load(f'/home/klundert/cfdn/data/CF_fit_utils/logvisual_distance_matrix.npy')
+visual_distance_matrix = np.load(f'/home/klundert/cfdn/data/CF_fit_utils/visual_distance_matrix.npy')
 ROImask = np.load(f'/tank/klundert/projects/cfdn/data/CF_fit_utils/visual_mask_hcp.npy')
 
 ac = AnalysisBase()
-ac.startup(subject=sub, experiment_id="ret", yaml_file="/tank/klundert/projects/hcp_movie/config.yml")
+ac.startup(subject=sub, experiment_id="ret", yaml_file="/home/klundert/hcp_movie/config.yml")
 mydat_train_stim = get_cortex(ac._read_tc_data(run=0).T)
 mydat_test_stim = get_cortex(ac._read_tc_data(run=1).T)
 
@@ -136,7 +136,7 @@ CV_rsq[CV_rsq >= 1] = np.nan
 gf_vis.iterative_search_params[:,-1] = CV_rsq
 gf_vis.iterative_search_params[:,3] = gf_vis.vertex_centres
 
-np.save(f'/tank/klundert/projects/cfdn/scripts/data_check_sub-{sub}_slice-{chunk_n}.npy', gf_vis.iterative_search_params)
+np.save(f'/home/klundert/data/data_check_sub-{sub}_slice-{chunk_n}.npy', gf_vis.iterative_search_params)
 # np.save(f'/scratch/2021/nprf_ss/derivatives/cf-fits/sub-0{sub}/limit_sample_gauss/visual_space/sub-0{sub}_task-prf_space-fsLR_den-170k_desc-preproc_gauss_CF_params_LOGvisual_space_fold{fold}_zsc.npy', gf_vis.iterative_search_params)
 
 
