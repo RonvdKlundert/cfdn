@@ -11,8 +11,10 @@ from scipy import stats
 import numpy as np
 import scipy as sp
 import nibabel as nb
-import cifti
+# import cifti
 import pickle
+from numpy.linalg import inv
+
 
 idxs = h5py.File('/tank/shared/timeless/atlases/cifti_indices.hdf5', "r")
 lidxs = np.array(idxs['Left_indices'])
@@ -44,6 +46,9 @@ def split_cortex(dat):
 
 #     data = np.concatenate([l, r])
     return l, r
+
+def split_given_size(a, size):
+    return np.split(a, np.arange(size,len(a),size))
 
 
 def write_newcifti(filename, old_cifti, data_arr):
@@ -90,7 +95,7 @@ class participant:
     and multiple runs
     """
     
-    def __init__(self, subject, derivatives_dir, scalar_dir):
+    def __init__(self, subject, derivatives_dir=None, scalar_dir=None, ldtr_dir=None):
         """__init__
 
         constructor for participant
@@ -98,7 +103,7 @@ class participant:
         Parameters
         ----------
         subject : subject id in form of 'sub-01'
-        derivatives_dir : directory where pybest preprocessed data can be found
+        derivatives_dir : directory where pybest/fmriprep/freesurfer folders can be found
         scalar_dir : directory where mean and std of data should be stored or is stored for
         further processing.
         """ 
@@ -106,7 +111,8 @@ class participant:
         self.subject = subject
         self.derivatives_dir = derivatives_dir
         self.scalar_dir = scalar_dir
-
+        self.ldtr_dir = ldtr_dir
+        
         self.prep_dir = os.path.join(self.derivatives_dir, 'fmriprep', self.subject)
         self.preproc_dir = os.path.join(self.derivatives_dir, 'pybest', self.subject)
 
@@ -126,9 +132,77 @@ class participant:
                 runs = runs+1
                 datvol = nb.load(self.prep_dir + f'/{sessions}/func/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsLR_den-170k_bold.dtseries.nii')
                 dat = np.asanyarray(datvol.dataobj)
-                write_newcifti(os.path.join(scalar_dir, self.subject, f'{self.subject}_{sessions}_task-prf_run-{runs}_mean.scalar.nii'), datvol, dat.mean(axis=0))
-                write_newcifti(os.path.join(scalar_dir, self.subject, f'{self.subject}_{sessions}_task-prf_run-{runs}_std.scalar.nii'), datvol, dat.std(axis=0))
+                write_newcifti(os.path.join(self.scalar_dir, self.subject, f'{self.subject}_{sessions}_task-prf_run-{runs}_mean.scalar.nii'), datvol, dat.mean(axis=0))
+                write_newcifti(os.path.join(self.scalar_dir, self.subject, f'{self.subject}_{sessions}_task-prf_run-{runs}_std.scalar.nii'), datvol, dat.std(axis=0))
+                
+                
+                
+                
+    def get_scalars_native(self):
+        os.makedirs(self.scalar_dir, exist_ok=True)
         
+        for sessions in self.sessions:
+            for runs in range(len(glob.glob(self.prep_dir + f'/{sessions}/func/*.dtseries.nii'))):
+                runs = runs+1
+                datvol_l = nb.load(self.prep_dir + f'/{sessions}/func/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsnative_hemi-L_bold.func.gii')
+                datvol_r = nb.load(self.prep_dir + f'/{sessions}/func/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsnative_hemi-R_bold.func.gii')
+                
+                
+                
+                dat = np.concatenate([datvol_l.agg_data(), datvol_r.agg_data()]).T
+                
+                np.save(os.path.join(self.scalar_dir, self.subject, f'{self.subject}_{sessions}_task-prf_run-{runs}_fsnativeLR_mean.npy'), dat.mean(axis=0))
+                np.save(os.path.join(self.scalar_dir, self.subject, f'{self.subject}_{sessions}_task-prf_run-{runs}_fsnativeLR_std.npy'), dat.std(axis=0))                    
+               
+     
+    
+    
+    def linear_detrend_psc(self, X_conv, idx_baseline, omit_TR):
+        os.makedirs(self.ldtr_dir, exist_ok=True)
+        
+        for sessions in self.sessions:
+            os.makedirs(self.ldtr_dir + f'/{self.subject}' + f'/{sessions}', exist_ok=True)
+            for runs in range(len(glob.glob(self.prep_dir + f'/{sessions}/func/*.dtseries.nii'))):
+                runs = runs+1
+                datvol = nb.load(self.prep_dir + f'/{sessions}/func/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsLR_den-170k_bold.dtseries.nii')
+                voxel_signal = np.asanyarray(datvol.dataobj)[omit_TR:,:]
+                # print(voxel_signal.shape)
+                betas_conv = inv(X_conv.T @ X_conv) @ X_conv.T @ voxel_signal
+                ldt = X_conv[:,1][:,np.newaxis] @ betas_conv[1,:][np.newaxis,:]
+                ldt_data = voxel_signal - ldt
+                baseline = np.mean(ldt_data[idx_baseline,:], axis=0)
+
+                psc_data = ((ldt_data - baseline) / baseline) * 100
+                
+                np.save(self.ldtr_dir + f'/{self.subject}' + f'/{sessions}' + f'/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsLR_den-170k_desc-linear-detrend_bold_psc.npy', psc_data)
+                
+    
+    
+    def linear_detrend_psc_native(self, X_conv, idx_baseline, omit_TR):
+        os.makedirs(self.ldtr_dir, exist_ok=True)
+        
+        for sessions in self.sessions:
+            os.makedirs(self.ldtr_dir + f'/{self.subject}' + f'/{sessions}', exist_ok=True)
+            for runs in range(len(glob.glob(self.prep_dir + f'/{sessions}/func/*.dtseries.nii'))):
+                runs = runs+1
+                datvol_l = nb.load(self.prep_dir + f'/{sessions}/func/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsnative_hemi-L_bold.func.gii')
+                datvol_r = nb.load(self.prep_dir + f'/{sessions}/func/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsnative_hemi-R_bold.func.gii')
+                
+                self.lidx = datvol_l.agg_data().shape[0]
+                self.ridx = datvol_r.agg_data().shape[0]
+
+                dat = np.concatenate([datvol_l.agg_data(), datvol_r.agg_data()]).T
+                
+                voxel_signal = dat[omit_TR:,:]
+                # print(voxel_signal.shape)
+                betas_conv = inv(X_conv.T @ X_conv) @ X_conv.T @ voxel_signal
+                ldt = X_conv[:,1][:,np.newaxis] @ betas_conv[1,:][np.newaxis,:]
+                ldt_data = voxel_signal - ldt
+                baseline = np.mean(ldt_data[idx_baseline,:], axis=0)
+
+                psc_data = ((ldt_data - baseline) / baseline) * 100
+                
+                np.save(self.ldtr_dir + f'/{self.subject}' + f'/{sessions}' + f'/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsnativeLR_den-300k_desc-linear-detrend_bold_psc.npy', psc_data)
         
         
     def convert_to_psc(self):
@@ -159,8 +233,7 @@ class participant:
             for sessions in self.sessions:            
                 for runs in range(len(glob.glob(self.prep_dir + f'/{sessions}/func/*.dtseries.nii'))):
                     runs = runs+1
-                    hp = np.load(self.preproc_dir + f'/{sessions}/preproc/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsLR_den-170k_desc-preproc_bold.npy')      
-                    
+                    hp = np.load(self.ldtr_dir + f'/{self.subject}' + f'/{sessions}' + f'/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsLR_den-170k_desc-linear-detrend_bold_psc.npy')
 
                     datvols = nb.load(os.path.join(self.scalar_dir, self.subject, f'{self.subject}_{sessions}_task-prf_run-{runs}_std.scalar.nii'))
                     std = np.asanyarray(datvols.dataobj)
@@ -170,7 +243,7 @@ class participant:
                     mean = np.asanyarray(datvolm.dataobj)
 
                     binmapL, binmapR = split_cortex(np.multiply(mean > 0, 1))
-                    smooth_map = np.concatenate([surfs[0].smooth(binmapL, smoothing), surfs[0].smooth(binmapR, smoothing)])
+                    smooth_map = np.concatenate([surfs[0].smooth(binmapL, smoothing), surfs[1].smooth(binmapR, smoothing)])
                     mean2 = np.copy(get_cortex(mean))
                     mean2[smooth_map<=0.9] = np.nan
                     mean[allidxs] = mean2
@@ -180,10 +253,108 @@ class participant:
 
                     hp[np.isnan(mean)] = np.nan                              
                     data.append(hp)
-        
+        self.data = np.array(data)
         self.data_train = np.nanmean(np.array(data[::2]), axis=0)
         self.data_test = np.nanmean(np.array(data[1::2]), axis=0)
-                
+
+        
+        
+        
+        
+        
+        
+    def get_folds_detrend(self, remove_edge=False, smoothing=5):
+        """
+        Removes vertices that are at the edge of the scanbox
+        """
+        data = []
+        
+        if remove_edge is False:
+            for sessions in self.sessions:            
+                for runs in range(len(glob.glob(self.prep_dir + f'/{sessions}/func/*.dtseries.nii'))):
+                    runs = runs+1
+                    hp = np.load(self.ldtr_dir + f'/{self.subject}' + f'/{sessions}' + f'/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsLR_den-170k_desc-linear-detrend_bold_psc.npy').T              
+                    data.append(hp)
+                    
+        else:
+            subject = 'hcp_999999'
+            # First we need to import the surfaces for this subject
+            surfs = [cortex.polyutils.Surface(*d) for d in cortex.db.get_surf(subject, "inflated")]
+            
+            for sessions in self.sessions:
+                print(f'processing {sessions}')
+                for runs in range(len(glob.glob(self.prep_dir + f'/{sessions}/func/*.dtseries.nii'))):
+                    runs = runs+1
+                    hp = np.load(self.ldtr_dir + f'/{self.subject}' + f'/{sessions}' + f'/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsLR_den-170k_desc-linear-detrend_bold_psc.npy').T 
+                    
+
+
+
+                    datvolm = nb.load(os.path.join(self.scalar_dir, self.subject, f'{self.subject}_{sessions}_task-prf_run-{runs}_mean.scalar.nii'))
+                    mean = np.asanyarray(datvolm.dataobj)
+
+                    binmapL, binmapR = split_cortex(np.multiply(mean > 0, 1))
+                    smooth_map = np.concatenate([surfs[0].smooth(binmapL, smoothing), surfs[1].smooth(binmapR, smoothing)])
+                    mean2 = np.copy(get_cortex(mean))
+                    mean2[smooth_map<=0.9] = np.nan
+                    mean[allidxs] = mean2
+
+
+
+                    hp[np.isnan(mean)] = np.nan                              
+                    data.append(hp)
+        self.data = np.array(data)
+        self.data_train = np.nanmean(np.array(data[::2]), axis=0)
+        self.data_test = np.nanmean(np.array(data[1::2]), axis=0)
+        
+        
+        
+    def get_folds_detrend_native(self, remove_edge=False, smoothing=5):
+        """
+        Removes vertices that are at the edge of the scanbox
+        """
+        data = []
+
+        
+        
+        if remove_edge is False:
+            for sessions in self.sessions:            
+                for runs in range(len(glob.glob(self.prep_dir + f'/{sessions}/func/*.dtseries.nii'))):
+                    runs = runs+1
+                    hp = np.load(self.ldtr_dir + f'/{self.subject}' + f'/{sessions}' + f'/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsnativeLR_den-300k_desc-linear-detrend_bold_psc.npy').T              
+                    data.append(hp)
+                    
+        else:
+            subject = self.subject
+            # First we need to import the surfaces for this subject
+            surfs = [cortex.polyutils.Surface(*d) for d in cortex.db.get_surf(subject, "inflated")]
+            
+            for sessions in self.sessions:
+                print(f'processing {sessions}')
+                for runs in range(len(glob.glob(self.prep_dir + f'/{sessions}/func/*.dtseries.nii'))):
+                    runs = runs+1
+                    hp = np.load(self.ldtr_dir + f'/{self.subject}' + f'/{sessions}' + f'/{self.subject}_{sessions}_task-prf_run-{runs}_space-fsnativeLR_den-300k_desc-linear-detrend_bold_psc.npy').T 
+                    
+                   
+
+
+                    mean = np.load(os.path.join(self.scalar_dir, self.subject, f'{self.subject}_{sessions}_task-prf_run-{runs}_fsnativeLR_mean.npy'))
+                   
+
+                    binmapL, binmapR = np.multiply(mean > 0, 1)[:self.lidx], np.multiply(mean > 0, 1)[self.lidx:]
+                    smooth_map = np.concatenate([surfs[0].smooth(binmapL, smoothing), surfs[1].smooth(binmapR, smoothing)])
+                    mean2 = np.copy(mean)
+                    mean2[smooth_map<=0.9] = np.nan
+                    
+                    
+                  
+
+                    hp[np.isnan(mean2)] = np.nan                              
+                    data.append(hp)
+        self.data = np.array(data)
+        self.data_train = np.nanmean(np.array(data[::2]), axis=0)
+        self.data_test = np.nanmean(np.array(data[1::2]), axis=0)
+
                 
         
 class Ciftihandler(object):
