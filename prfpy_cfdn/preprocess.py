@@ -6,12 +6,10 @@ from nilearn.surface import load_surf_data
 import glob
 import cortex.polyutils
 import h5py
-
 from scipy import stats
 import numpy as np
 import scipy as sp
 import nibabel as nb
-# import cifti
 import pickle
 from numpy.linalg import inv
 
