@@ -1,61 +1,35 @@
-import sys
-sys.path.append('/home/klundert/cfdn/prfpy_cfdn/')
 import os
-import numpy as np
-#import preprocess
-#import cortex as cx
-import numpy as np
-import scipy as sp
-import nilearn as nl
-from nilearn.surface import load_surf_data
-import os, shutil, urllib.request
-#import cortex as cx
-from matplotlib import rc
-import nibabel as nb
-from nibabel import cifti2
-import h5py
-import matplotlib.pyplot as plt
-from prfpy.stimulus import PRFStimulus2D
-from prfpy.model import Iso2DGaussianModel, CSS_Iso2DGaussianModel
-from prfpy.fit import Iso2DGaussianFitter, CSS_Iso2DGaussianFitter
-from scipy.optimize import LinearConstraint, NonlinearConstraint
-from scipy.io import loadmat
-from scipy.ndimage import median_filter, gaussian_filter, binary_propagation
-from preprocess import get_cortex
-from preprocess import split_given_size
+import sys
+import shutil
+import urllib.request
+
 import yaml
+
 import numpy as np
 import scipy as sp
-import nilearn as nl
-from nilearn.surface import load_surf_data
-import os, shutil, urllib.request
-import cortex as cx
+from scipy.optimize import LinearConstraint
+
+import matplotlib.pyplot as plt
 from matplotlib import rc
+
 import nibabel as nb
 from nibabel import cifti2
-import h5py
-import matplotlib.pyplot as plt
-import prfpy
-from scipy.io import loadmat
+
+import nilearn as nl
+from nilearn.surface import load_surf_data
+
+import cortex as cx
+
 from prfpy.rf import *
-from prfpy.timecourse import *
 from prfpy.stimulus import PRFStimulus2D
-from prfpy.model import Iso2DGaussianModel, Norm_Iso2DGaussianModel, DoG_Iso2DGaussianModel, CSS_Iso2DGaussianModel
-from prfpy.fit import Iso2DGaussianFitter, Norm_Iso2DGaussianFitter, DoG_Iso2DGaussianFitter, CSS_Iso2DGaussianFitter
+from prfpy.model import Iso2DGaussianModel, Norm_Iso2DGaussianModel
+from prfpy.fit import Iso2DGaussianFitter, Norm_Iso2DGaussianFitter
+
+sys.path.append('/home/klundert/cfdn/prfpy_cfdn/')
+from preprocess import get_cortex, split_given_size # this import will change to: from cf_utils import ....
 
 
-
-
-########################################################################################
-# set parameters
-########################################################################################
-
-
-fit_hrf = True
-folder = 'hcp_data'
-
-constraints_gauss, constraints_css, constraints_dog, constraints_norm = [],[],[],[]
-
+# get arguments from command line
 
 id = int(sys.argv[1])
 n_jobs = int(sys.argv[2])
@@ -65,45 +39,81 @@ fold = int(sys.argv[4])
 sub = str(id+1)
 
 
-new_dms = np.load('/home/klundert/cfdn/data/CF_fit_utils/prf_dm.npy')[5:,:,:]
+########################################################################################
+# set parameters from yaml file
+########################################################################################
 
+yaml_dir = '/home/klundert/cfdn/analysis_config.yml'
+
+with open(yaml_dir, 'r') as f:
+    analysis_info = yaml.safe_load(f)
+
+# import yaml settings
+data_dir = analysis_info['data_dir']
+save_dir_cf = analysis_info['save_dir_cf']
+save_dir_pRF = analysis_info['save_dir_pRF']
+threads = analysis_info['threads']
+n_slices = analysis_info['n_slices']
+n_batches = analysis_info['n_batches']
+discard_volumes = analysis_info['discard_volumes']
+xtol = float(analysis_info['xtol'])
+ftol = float(analysis_info['ftol'])
+constraints = analysis_info['constraints']
+rsq_threshold = analysis_info['rsq_threshold']
+CF_models_to_fit = analysis_info['CF_models_to_fit']
+pRF_models_to_fit = analysis_info['pRF_models_to_fit']
+fit_hrf = analysis_info['fit_hrf']
+filter_predictions = analysis_info['filter_predictions']
+filter_type = analysis_info['filter_type']
+data_scaling = analysis_info['data_scaling']
+
+
+# set up constraints
+constraints_gauss, constraints_norm = [],[]
+
+
+# load design matrix
+new_dms = np.load(f'{data_dir}/prf_dm.npy')[discard_volumes:,:,:]
+
+# set up stimulus object
 prf_stim = PRFStimulus2D(screen_size_cm=69, 
                          screen_distance_cm=220, 
                          design_matrix=new_dms.T, 
                          TR=1.5)
 
+# set up grid of parameters to search over
 grid_nr = 20
 max_ecc_size = prf_stim.screen_size_degrees/2.0
 sizes, eccs, polars = max_ecc_size * np.linspace(0.25, 1, grid_nr)**2, \
     max_ecc_size * np.linspace(0.1, 1, grid_nr)**2, \
     np.linspace(0, 2*np.pi, grid_nr)
 
-# to set up parameter bounds in iterfit
+
+# some constants we can use for bounds
 inf = np.inf
 eps = 1e-1
 ss = prf_stim.screen_size_degrees
 
 
+# load data for this subject, split into train and test
 
 if fold == 0:
-    mydat_train_stim = np.nan_to_num(np.load(f'/home/klundert/cfdn/data/CF_fit_utils/data_fold1_detrend_sub-0{sub}_psc_hcp.npy'))
-    mydat_test_stim = np.nan_to_num(np.load(f'/home/klundert/cfdn/data/CF_fit_utils/data_fold2_detrend_sub-0{sub}_psc_hcp.npy'))
+    mydat_train_stim = np.nan_to_num(np.load(f'{data_dir}/data_fold1_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
+    mydat_test_stim = np.nan_to_num(np.load(f'{data_dir}/data_fold2_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
 else:
-    mydat_train_stim = np.nan_to_num(np.load(f'/home/klundert/cfdn/data/CF_fit_utils/data_fold2_detrend_sub-0{sub}_psc_hcp.npy'))
-    mydat_test_stim = np.nan_to_num(np.load(f'/home/klundert/cfdn/data/CF_fit_utils/data_fold1_detrend_sub-0{sub}_psc_hcp.npy'))
+    mydat_train_stim = np.nan_to_num(np.load(f'{data_dir}/data_fold2_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
+    mydat_test_stim = np.nan_to_num(np.load(f'{data_dir}/data_fold1_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
 
+brainmask = np.load(f'/home/klundert/cfdn/data/CF_fit_utils/roimask_wang_hcp.npy')
 
-
-
-fitsize = np.ceil(len(mydat_train_stim)/350).astype(int)
+print(mydat_train_stim.shape)
+# split data into n_slices and get the slice we want to fit
+fitsize = np.ceil(len(mydat_train_stim)/n_slices).astype(int)
 print(f'fitsize is {fitsize}')
 
 mydat_train = split_given_size(mydat_train_stim, fitsize)[slice_n]
 mydat_test = split_given_size(mydat_test_stim, fitsize)[slice_n]
 
-# mydat_test = split_given_size(mydat_test_stim, 3294)[slice_n]
-
-#model=CFGaussianModel(train_stim)
 
 # Define grid of parameters to search over
 
@@ -143,85 +153,97 @@ if fit_hrf:
     gauss_bounds += [(0,10),(0,0)]
 
 
-# Define the model and fitter etc
+# Define the model and fitter objects
 gg = Iso2DGaussianModel(stimulus=prf_stim,
-                        filter_predictions=False,
-                        filter_type='dc')
+                        filter_predictions=filter_predictions,
+                        filter_type=filter_type)
 
 gf_P = Iso2DGaussianFitter(data=mydat_train, model=gg, n_jobs=n_jobs, fit_hrf=fit_hrf)
 gf_P.grid_fit(ecc_grid=eccs,
                  polar_grid=polars,
                  size_grid=sizes, 
-                 n_batches=60,
+                 n_batches=n_batches,
                  fixed_grid_baseline=0,
                  grid_bounds=gauss_grid_bounds)
 
 
 print('finished gridsearch gauss')
-np.save(f'/home/klundert/{folder}/gauss_grid_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', gf_P.gridsearch_params)
+
+np.save(f'{save_dir_pRF}/gauss_grid_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', gf_P.gridsearch_params)
 
 
 print('starting iterative fit for gauss')
-gf_P.iterative_fit(rsq_threshold=-1, verbose=True, bounds=gauss_bounds, constraints=[],  xtol=1e-5, ftol=1e-5)
+
+if constraints:
+    gf_P.iterative_fit(rsq_threshold=-1, verbose=True, bounds=gauss_bounds, constraints=constraints_gauss,  xtol=1e-5, ftol=1e-5)
+else:
+    gf_P.iterative_fit(rsq_threshold=-1, verbose=True, bounds=gauss_bounds, xtol=1e-5, ftol=1e-5)
+
 
 gf_P.crossvalidate_fit(mydat_test, single_hrf=True)
 
 
 print('finished iterative fit gauss')
-np.save(f'/home/klundert/{folder}/gauss_prf_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', gf_P.iterative_search_params)
+np.save(f'{save_dir_pRF}/gauss_prf_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', gf_P.iterative_search_params)
 
 
-############################
-# ftting norm model
-############################
+if 'DN_prf' in pRF_models_to_fit:
+
+    ############################
+    # ftting norm model
+    ############################
 
 
-# Define the model and fitter etc
-gg_norm = Norm_Iso2DGaussianModel(stimulus=prf_stim,
-                                    filter_predictions=False,
-                                    filter_type='dc',
-                                    )
+    # Define the model and fitter etc
+    gg_norm = Norm_Iso2DGaussianModel(stimulus=prf_stim,
+                                        filter_predictions=filter_predictions,
+                                        filter_type='dc',
+                                        )
 
-gf_norm = Norm_Iso2DGaussianFitter(data=mydat_train,
-                                   model=gg_norm,
-                                   n_jobs=n_jobs,
-                                   fit_hrf=fit_hrf,
-                                   previous_gaussian_fitter=gf_P)
+    gf_norm = Norm_Iso2DGaussianFitter(data=mydat_train,
+                                    model=gg_norm,
+                                    n_jobs=n_jobs,
+                                    fit_hrf=fit_hrf,
+                                    previous_gaussian_fitter=gf_P)
 
-gf_norm.grid_fit(surround_amplitude_grid,
-                         surround_size_grid,
-                         neural_baseline_grid,
-                         surround_baseline_grid,
-                         verbose=True,
-                         n_batches=60,
-                         fixed_grid_baseline=0,
-                         rsq_threshold=0.01,
-                         grid_bounds=norm_grid_bounds)
+    gf_norm.grid_fit(surround_amplitude_grid,
+                            surround_size_grid,
+                            neural_baseline_grid,
+                            surround_baseline_grid,
+                            verbose=True,
+                            n_batches=n_batches,
+                            fixed_grid_baseline=0,
+                            rsq_threshold=rsq_threshold,
+                            grid_bounds=norm_grid_bounds)
 
-print('finished gridsearch for DN')
-np.save(f'/home/klundert/{folder}/norm_grid_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', gf_norm.gridsearch_params)
-
-
-
-if fit_hrf:
-    A_ssc_norm = np.array([[0,0,-1,0,0,0,1,0,0,0,0]])
-else:
-    A_ssc_norm = np.array([[0,0,-1,0,0,0,1,0,0]])
-
-constraints_norm.append(LinearConstraint(A_ssc_norm,
-                                            lb=0,
-                                            ub=+inf))
+    print('finished gridsearch for DN')
+    np.save(f'{save_dir_pRF}/norm_grid_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', gf_norm.gridsearch_params)
 
 
-constraints_norm.append(LinearConstraint(A_ssc_norm, lb=0, ub=+inf))
+
+    if fit_hrf:
+        A_ssc_norm = np.array([[0,0,-1,0,0,0,1,0,0,0,0]])
+    else:
+        A_ssc_norm = np.array([[0,0,-1,0,0,0,1,0,0]])
+
+    constraints_norm.append(LinearConstraint(A_ssc_norm,
+                                                lb=0,
+                                                ub=+inf))
 
 
-print('starting DN fit')
-gf_norm.iterative_fit(rsq_threshold=0.1, verbose=True, bounds=norm_bounds, constraints=constraints_norm, xtol=1e-5, ftol=1e-5)
-
-gf_norm.crossvalidate_fit(mydat_test, single_hrf=True)
+    constraints_norm.append(LinearConstraint(A_ssc_norm, lb=0, ub=+inf))
 
 
-print('finished iterative fit DN')
+    print('starting DN fit')
 
-np.save(f'/home/klundert/{folder}/DN_prf_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', gf_norm.iterative_search_params)
+    if constraints:
+        gf_norm.iterative_fit(rsq_threshold=rsq_threshold, verbose=True, bounds=norm_bounds, constraints=constraints_norm, xtol=xtol, ftol=ftol)
+    else:
+        gf_norm.iterative_fit(rsq_threshold=rsq_threshold, verbose=True, bounds=norm_bounds, xtol=xtol, ftol=ftol)
+
+    gf_norm.crossvalidate_fit(mydat_test, single_hrf=True)
+
+
+    print('finished iterative fit DN')
+
+    np.save(f'{save_dir_pRF}/DN_prf_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', gf_norm.iterative_search_params)

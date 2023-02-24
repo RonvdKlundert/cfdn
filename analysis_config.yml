@@ -1,0 +1,64 @@
+data_dir: "/home/klundert/cfdn/data/CF_fit_utils"
+save_dir_cf: "/home/klundert/cf-fit_slices"
+save_dir_pRF: "/home/klundert/prf-fit_slices"
+
+#general settings
+data_scaling: "psc"
+
+subjects:
+        - 1
+        - 2
+
+
+#how many cores
+threads: 16
+
+#how many slices the total data should be split into 357 works fine for fullbrain
+n_slices: 357
+
+#number of voxel batches for grid fit
+n_batches: 60
+
+#volumes to remove at beginning of time series
+discard_volumes: 5
+
+#fitting tolerance
+xtol: 1e-5
+ftol: 1e-5
+
+#constraints on surround models (positive center, large surround) (trust-constr minimizer)
+constraints: True
+
+#threshold can range from -1 to 1, as it regards crossvalidated rsq
+rsq_threshold: -1
+
+
+#CF specific options
+
+#options: CF for gaussian, DNCF for normalization + _cortical, _visual, _logvisual for fit space
+CF_models_to_fit:
+           - "CF_cortical"
+          # - "DNCF_cortical" 
+
+# which mask to use, wang for only wang ROIs, NoR2 for whole brain without V1
+masktype: "wang"
+
+
+#pRF specific options
+#options: gauss_prf, DN_prf
+pRF_models_to_fit:
+           - "gauss_prf"
+          #  - "DN_prf" 
+
+
+#whether to fit hrf or not
+fit_hrf: True
+
+#filter types: "sg" for savitzky golay or "dc" for discrete cosines
+filter_predictions: False
+filter_type: "dc"
+
+
+
+
+

@@ -206,14 +206,14 @@ class FormatData:
             
             elif self.arranged_data[key].shape[1] == 8:
                 parameter_names = ['x', 'y', 'pRF size', 'amplitude', 'bold-baseline', 'hrf1', 'hrf2', 'rsq']
-                prf_gauss = pd.DataFrame(self.arranged_data[key], columns=parameter_names)
+                prf_gauss = pd.DataFrame(get_cortex(self.arranged_data[key]), columns=parameter_names)
                 prf_gauss.index = range(prf_gauss.shape[0])
                 self.arranged_data[key] = prf_gauss
 
             
             elif self.arranged_data[key].shape[1] == 12:
                 parameter_names = ['x', 'y', 'pRF size', 'amplitude', 'bold baseline', 'surr amp', 'surr size', 'B', 'D', 'hrf1', 'hrf2', 'rsq']
-                prf_dn = pd.DataFrame(self.arranged_data[key], columns=parameter_names)
+                prf_dn = pd.DataFrame(get_cortex(self.arranged_data[key]), columns=parameter_names)
                 prf_dn.index = range(prf_dn.shape[0])
                 self.arranged_data[key] = prf_dn
             
