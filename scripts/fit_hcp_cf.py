@@ -162,7 +162,7 @@ CV_rsq[CV_rsq >= 1] = np.nan
 gf_vis3.iterative_search_params[:,-1] = CV_rsq
 gf_vis3.iterative_search_params[:,3] = gf_vis3.vertex_centres
 
-np.save(f'{save_dir_cf}/CF_cortical_fit_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', gf_vis3.iterative_search_params)
+np.save(f'{save_dir_cf}/CF_cortical_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', gf_vis3.iterative_search_params)
 
 
 if 'DNCF' in CF_models_to_fit:
@@ -228,4 +228,4 @@ if 'DNCF' in CF_models_to_fit:
     fitdn.iterative_search_params[:,-1] = CVdncf_rsq
     fitdn.iterative_search_params[:,3] = gf_vis3.vertex_centres
 
-    np.save(f'{save_dir_cf}/DNCF_cortical_fit_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', fitdn.iterative_search_params)
+    np.save(f'{save_dir_cf}/DNCF_cortical_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', fitdn.iterative_search_params)

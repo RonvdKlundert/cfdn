@@ -1,19 +1,17 @@
 import cortex as cx
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
-import IPython
+
 
 from prfpy.rf import *
 from prfpy.timecourse import *
 from prfpy.stimulus import CFStimulus, PRFStimulus2D
 from prfpy.model import CFGaussianModel, Norm_CFGaussianModel, Iso2DGaussianModel, Norm_Iso2DGaussianModel
 
-# sys.path.append('/tank/klundert/projects/cfdn/cfpy-tools/')
 import numpy as np
 from cftools.cf_utils import get_cortex
 import pickle
-import cortex as cxx
+import cortex as cx
 
 
 def angle(x0, y0):

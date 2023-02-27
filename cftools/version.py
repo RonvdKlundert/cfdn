@@ -31,7 +31,7 @@ description = "prfpy-cfdn: Implementation and visualization of divisive normaliz
 # Long description will go up on the pypi page
 long_description = """
 
-prfpy-cfdn
+cftools
 ========
 
 [long description]
@@ -51,7 +51,7 @@ Copyright (c) 2022--, RonvdKlundert,
 Spinoza Centre for Neuroimaging, Amsterdam.
 """
 
-NAME = "prfpy-cfdn"
+NAME = "cftools"
 MAINTAINER = "RonvdKlundert"
 MAINTAINER_EMAIL = "klundertclan@hotmail.com"
 DESCRIPTION = description
@@ -66,5 +66,5 @@ MAJOR = _version_major
 MINOR = _version_minor
 MICRO = _version_micro
 VERSION = __version__
-PACKAGE_DATA = {'prfpy-cfdn': [pjoin('test', 'data', '*')]}
+PACKAGE_DATA = {'cftools': [pjoin('test', 'data', '*')]}
 REQUIRES = []

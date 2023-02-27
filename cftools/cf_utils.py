@@ -160,6 +160,44 @@ class FormatData:
 
             self.arranged_data[key] = np.hstack([self.arranged_data[key], np.asarray(spliced_lookup)])
 
+    def average_folds(self, weighted=True):
+        """average_folds
+        
+        will average the fits from the two folds of the same subject
+        weighted by R2
+
+        """
+            
+        for key in self.arranged_data.keys():
+            if key.split('_')[3] == 'fold-0':
+                # get R2 values of first fold
+                a = np.nan_to_num(np.array(self.arranged_data[key])[:,-1])
+                a[a<0] = 1e-6
+                a[a==0] = 1e-6
+                w_first_fold = np.repeat(a[:, np.newaxis], np.array(self.arranged_data[key]).shape[-1], axis=1)
+
+                # get R2 values of second fold
+                b = np.nan_to_num(np.array(self.arranged_data[key.replace('fold-0', 'fold-1')])[:,-1])
+                b[b<0] = 1e-6
+                b[b==0] = 1e-6
+                w_second_fold = np.repeat(b[:, np.newaxis], np.array(self.arranged_data[key.replace('fold-0', 'fold-1')]).shape[-1], axis=1)
+
+
+                # average the two folds
+                if weighted:
+                    self.arranged_data[key] = np.average([self.arranged_data[key], self.arranged_data[key.replace('fold-0', 'fold-1')]], axis=0, weights=[w_first_fold, w_second_fold])
+                else:
+                    self.arranged_data[key] = np.average([self.arranged_data[key], self.arranged_data[key.replace('fold-0', 'fold-1')]], axis=0)
+
+            
+
+        
+        # rename the keys to replace "fold-0" with "average"
+        self.arranged_data = {key.replace('fold-0', 'average'): value for key, value in self.arranged_data.items()}
+
+        # remove the second fold
+        self.arranged_data = {key: value for key, value in self.arranged_data.items() if 'fold-1' not in key}
+
 
     def create_dataframe(self, maskdir=None):
         """create_dataframe

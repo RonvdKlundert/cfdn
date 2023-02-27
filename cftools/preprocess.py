@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-from cf_utils import get_cortex, split_cortex, split_given_size
+from .cf_utils import get_cortex, split_cortex, split_given_size
 from nilearn.surface import load_surf_data
 import glob
 import cortex.polyutils
