@@ -9,11 +9,11 @@ from prfpy.timecourse import *
 from prfpy.stimulus import CFStimulus, PRFStimulus2D
 from prfpy.model import CFGaussianModel, Norm_CFGaussianModel, Iso2DGaussianModel, Norm_Iso2DGaussianModel
 
-sys.path.append('/tank/klundert/projects/cfdn/cfpy-tools/')
+# sys.path.append('/tank/klundert/projects/cfdn/cfpy-tools/')
 import numpy as np
-from cf_utils import get_cortex
+from cftools.cf_utils import get_cortex
 import pickle
-import cortex as cx
+import cortex as cxx
 
 
 def angle(x0, y0):
