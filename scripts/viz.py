@@ -9,7 +9,7 @@ from prfpy.timecourse import *
 from prfpy.stimulus import CFStimulus, PRFStimulus2D
 from prfpy.model import CFGaussianModel, Norm_CFGaussianModel, Iso2DGaussianModel, Norm_Iso2DGaussianModel
 
-sys.path.append('/tank/klundert/projects/cfdn/prfpy_cfdn/')
+sys.path.append('/tank/klundert/projects/cfdn/cfpy-tools/')
 import numpy as np
 from cf_utils import get_cortex
 import pickle
@@ -47,7 +47,7 @@ file_path = '/tank/shared/2021/visual/DN-CF/viz_data/fit_data/wholebrain_pRF-fit
 with open(file_path, 'rb') as f:
     prf_fits = pickle.load(f)
 
-print(prf_fits.keys())
+# print(prf_fits.keys())
 
 # specify the directory path to load the file
 file_path = '/tank/shared/2021/visual/DN-CF/viz_data/fit_data/wholebrain_CF-fits_cortical-space.pickle'
@@ -65,13 +65,13 @@ elif subject_num == '2':
 else:
     raise ValueError("Invalid subject number. Must be 1 or 2.")
 
-fold_num = input("Enter the fold number (0 or 1): ")
-if fold_num == '0':
+fold_num = input("Enter the fold number (1 or 2): ")
+if fold_num == '1':
     fold = 'fold-0'
-elif fold_num == '1':
+elif fold_num == '2':
     fold = 'fold-1'
 else:
-    raise ValueError("Invalid fold number. Must be 0 or 1.")
+    raise ValueError("Invalid fold number. Must be 1 or 2.")
 
 # construct the dictionary key strings for prf_fits and cf_fits based on user input
 prf_key = 'gauss_prf_' + subject + '_' + fold
@@ -89,18 +89,18 @@ except KeyError:
     raise ValueError("Invalid subject/fold combination. Please try again.")
 
 
-sos = np.load('/tank/klundert/projects/cfdn/data/CF_fit_utils/hcp-dataset_utils/prf_dm.npy')
-new_dms = np.load('/tank/klundert/projects/cfdn/data/CF_fit_utils/hcp-dataset_utils/prf_dm.npy')[5:,:,:]
+sos = np.load('/tank/shared/2021/visual/DN-CF/CF_fit_utils/prf_dm.npy')
+new_dms = np.load('/tank/shared/2021/visual/DN-CF/CF_fit_utils/prf_dm.npy')[5:,:,:]
 
 
-if fold_num == '0':
-    psc_data = get_cortex(np.load(f'/tank/klundert/fit_data/fit_data/data_fold2_detrend_{subject}_psc_hcp.npy'))
-elif fold_num == '1':
-    psc_data = get_cortex(np.load(f'/tank/klundert/fit_data/fit_data/data_fold1_detrend_{subject}_psc_hcp.npy'))
+if fold_num == '1':
+    psc_data = get_cortex(np.load(f'/tank/shared/2021/visual/DN-CF/derivatives/data_folds/{subject}/data_fold2_detrend_{subject}_psc_hcp.npy'))
+elif fold_num == '2':
+    psc_data = get_cortex(np.load(f'/tank/shared/2021/visual/DN-CF/derivatives/data_folds/{subject}/data_fold1_detrend_{subject}_psc_hcp.npy'))
 else:
-    raise ValueError("Invalid fold number. Must be 0 or 1.")
+    raise ValueError("Invalid fold number. Must be 1 or 2.")
 
-brainmask = np.load(f'/tank/klundert/DMs/brainmask_{subject}.npy')
+brainmask = np.load(f'/tank/shared/2021/visual/DN-CF/CF_fit_utils/brainmask_{subject}.npy')
 
 
 
@@ -111,16 +111,13 @@ prf_dn[~brainmask] = np.nan
 
 # set up models to create model predictions for plotting
 
-subsurface_verts = np.load(f'/tank/klundert/DMs/subsurface_verts_{subject}_hcp_NoR2.npy')
-distance_matrix = np.load(f'/tank/klundert/DMs//distance_matrix_{subject}_hcp_NoR2.npy')
-mydat_train_stim = get_cortex(np.load(f'/tank/klundert/fit_data/fit_data/data_fold2_detrend_{subject}_zsc_hcp.npy'))
+subsurface_verts = np.load(f'/tank/shared/2021/visual/DN-CF/CF_fit_utils/subsurface_verts_{subject}_hcp_NoR2.npy')
+distance_matrix = np.load(f'/tank/shared/2021/visual/DN-CF/CF_fit_utils/distance_matrix_{subject}_hcp_NoR2.npy')
+mydat_train_stim = psc_data
 train_stim3=CFStimulus(mydat_train_stim, subsurface_verts, distance_matrix)
 modelG=CFGaussianModel(train_stim3)
 modelDN=Norm_CFGaussianModel(train_stim3)
 
-
-s2_f = get_cortex(np.load('/tank/klundert/fit_data/fit_data/data_fold2_detrend_sub-02_psc_hcp.npy'))
-new_dms = np.load('/tank/klundert/projects/cfdn/data/CF_fit_utils/hcp-dataset_utils/prf_dm.npy')[5:,:,:]
 
 prf_stim = PRFStimulus2D(screen_size_cm=69, 
                          screen_distance_cm=220, 

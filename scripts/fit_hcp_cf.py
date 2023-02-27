@@ -7,7 +7,7 @@ from prfpy.model import CFGaussianModel, Norm_CFGaussianModel
 from prfpy.fit import CFFitter, Norm_CFGaussianFitter
 
 
-sys.path.append('/home/klundert/cfdn/prfpy_cfdn/')
+sys.path.append('/home/klundert/cfdn/cf-tools/')
 from preprocess import get_cortex, split_given_size
 
 
