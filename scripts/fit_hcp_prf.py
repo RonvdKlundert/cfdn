@@ -1,24 +1,8 @@
-import os
 import sys
-import shutil
-import urllib.request
-
 import yaml
 
 import numpy as np
-import scipy as sp
 from scipy.optimize import LinearConstraint
-
-import matplotlib.pyplot as plt
-from matplotlib import rc
-
-import nibabel as nb
-from nibabel import cifti2
-
-import nilearn as nl
-from nilearn.surface import load_surf_data
-
-import cortex as cx
 
 from prfpy.rf import *
 from prfpy.stimulus import PRFStimulus2D
@@ -26,7 +10,7 @@ from prfpy.model import Iso2DGaussianModel, Norm_Iso2DGaussianModel
 from prfpy.fit import Iso2DGaussianFitter, Norm_Iso2DGaussianFitter
 
 sys.path.append('/home/klundert/cfdn/prfpy_cfdn/')
-from preprocess import get_cortex, split_given_size # this import will change to: from cf_utils import ....
+from preprocess import split_given_size # this import will change to: from cf_utils import ....
 
 
 # get arguments from command line
