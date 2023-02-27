@@ -1,49 +1,20 @@
 import cortex as cx
-import nilearn.surface as surface
-import pandas as pd
 import numpy as np
-import os, shutil, shlex, subprocess
-import h5py
 import matplotlib.pyplot as plt
-from matplotlib.colors import hsv_to_rgb
-from matplotlib import cm
 import sys
-# needs prfpy for prf spatial plot, and for model predictions at some point
-from prfpy.rf import gauss2D_iso_cart
-from prfpy.model import Iso2DGaussianModel, CSS_Iso2DGaussianModel, Norm_Iso2DGaussianModel, DoG_Iso2DGaussianModel
-from prfpy.fit import Iso2DGaussianFitter, CSS_Iso2DGaussianFitter, Norm_Iso2DGaussianFitter, DoG_Iso2DGaussianFitter
-from prfpy.stimulus import PRFStimulus2D, CFStimulus
 import IPython
 
-from prfpy.utils import Subsurface
-from prfpy.stimulus import CFStimulus
-from prfpy.model import CFGaussianModel
-from prfpy.fit import CFFitter
-from prfpy.model import Norm_CFGaussianModel
-from prfpy.fit import Norm_CFGaussianFitter
-
-import scipy as sp
-import nilearn as nl
-from nilearn.surface import load_surf_data
-import urllib.request
-from matplotlib import rc
-import nibabel as nb
-from nibabel import cifti2
-
-import prfpy
-from scipy.io import loadmat
 from prfpy.rf import *
 from prfpy.timecourse import *
-from prfpy.utils import Subsurface
-from prfpy.model import CFGaussianModel
-from prfpy.fit import CFFitter, Norm_CFGaussianFitter
-from scipy.optimize import LinearConstraint, NonlinearConstraint
-import natsort
+from prfpy.stimulus import CFStimulus, PRFStimulus2D
+from prfpy.model import CFGaussianModel, Norm_CFGaussianModel, Iso2DGaussianModel, Norm_Iso2DGaussianModel
+
 sys.path.append('/tank/klundert/projects/cfdn/prfpy_cfdn/')
-import pandas as pd
 import numpy as np
-from cf_utils import FormatData
-from preprocess import get_cortex
+from cf_utils import get_cortex
+import pickle
+import cortex as cx
+
 
 def angle(x0, y0):
     return np.angle(x0 + y0 * 1j)
@@ -68,41 +39,81 @@ vc = cx.quickflat.utils._make_vertex_cache(subject, height=flatmap_height)
 mask_index = np.zeros(mask.shape)
 mask_index[mask] = np.arange(mask.sum())
 
+
+# specify the directory path to load the file
+file_path = '/tank/shared/2021/visual/DN-CF/viz_data/fit_data/wholebrain_pRF-fits.pickle'
+
+# open the file with the specified directory path
+with open(file_path, 'rb') as f:
+    prf_fits = pickle.load(f)
+
+print(prf_fits.keys())
+
+# specify the directory path to load the file
+file_path = '/tank/shared/2021/visual/DN-CF/viz_data/fit_data/wholebrain_CF-fits_cortical-space.pickle'
+
+# open the file with the specified directory path
+with open(file_path, 'rb') as f:
+    cf_fits = pickle.load(f)
+
+# prompt the user to enter the subject and fold they want to load
+subject_num = input("Enter the subject number (1 or 2): ")
+if subject_num == '1':
+    subject = 'sub-01'
+elif subject_num == '2':
+    subject = 'sub-02'
+else:
+    raise ValueError("Invalid subject number. Must be 1 or 2.")
+
+fold_num = input("Enter the fold number (0 or 1): ")
+if fold_num == '0':
+    fold = 'fold-0'
+elif fold_num == '1':
+    fold = 'fold-1'
+else:
+    raise ValueError("Invalid fold number. Must be 0 or 1.")
+
+# construct the dictionary key strings for prf_fits and cf_fits based on user input
+prf_key = 'gauss_prf_' + subject + '_' + fold
+dn_key = 'DN_prf_' + subject + '_' + fold
+cf_key = 'CF_cortical_fit_' + subject + '_' + fold
+dn_cf_key = 'DNCF_cortical_fit_' + subject + '_' + fold
+
+# load the specified fits
+try:
+    prf_dn = prf_fits[dn_key]
+    prf_gauss = prf_fits[prf_key]
+    cf_dn = cf_fits[dn_cf_key]
+    cf_gauss = cf_fits[cf_key]
+except KeyError:
+    raise ValueError("Invalid subject/fold combination. Please try again.")
+
+
 sos = np.load('/tank/klundert/projects/cfdn/data/CF_fit_utils/hcp-dataset_utils/prf_dm.npy')
 new_dms = np.load('/tank/klundert/projects/cfdn/data/CF_fit_utils/hcp-dataset_utils/prf_dm.npy')[5:,:,:]
-psub=2
-psc_data = get_cortex(np.load(f'/tank/klundert/fit_data/fit_data/data_fold2_detrend_sub-0{psub}_psc_hcp.npy'))
-brainmask = np.load(f'/tank/klundert/DMs/brainmask_sub-02.npy')
 
 
-prfdir = '/tank/klundert/hcp_space_data/hcp_data'
-prf_dat = FormatData(prfdir, ['gauss_prf', 'DN_prf'], [1,2])
-prf_dat.arrange_fits()
-prf_dat.create_dataframe()
+if fold_num == '0':
+    psc_data = get_cortex(np.load(f'/tank/klundert/fit_data/fit_data/data_fold2_detrend_{subject}_psc_hcp.npy'))
+elif fold_num == '1':
+    psc_data = get_cortex(np.load(f'/tank/klundert/fit_data/fit_data/data_fold1_detrend_{subject}_psc_hcp.npy'))
+else:
+    raise ValueError("Invalid fold number. Must be 0 or 1.")
 
-cfdir = '/tank/klundert/data_hcp-space_cf/data'
-cf_dat = FormatData(cfdir, ['CF_cortical_fit', 'DNCF_cortical_fit'], [1,2])
-cf_dat.arrange_fits()
-cf_dat.add_xy_values('/tank/klundert/data_hcp-space_cf')
-cf_dat.create_dataframe('/tank/klundert/DMs/brainmask')
+brainmask = np.load(f'/tank/klundert/DMs/brainmask_{subject}.npy')
 
-prf_dn = prf_dat.arranged_data['DN_prf_sub-02_fold-0']
-prf_gauss = prf_dat.arranged_data['gauss_prf_sub-02_fold-0']
+
 
 prf_gauss[~brainmask] = np.nan
 prf_dn[~brainmask] = np.nan
-
-cf_dn = cf_dat.arranged_data['DNCF_cortical_fit_sub-02_fold-0']
-cf_gauss = cf_dat.arranged_data['CF_cortical_fit_sub-02_fold-0']
-
 
 
 
 # set up models to create model predictions for plotting
 
-subsurface_verts = np.load(f'/tank/klundert/DMs/subsurface_verts_sub-0{psub}_hcp_NoR2.npy')
-distance_matrix = np.load(f'/tank/klundert/DMs//distance_matrix_sub-0{psub}_hcp_NoR2.npy')
-mydat_train_stim = get_cortex(np.load(f'/tank/klundert/fit_data/fit_data/data_fold2_detrend_sub-0{psub}_zsc_hcp.npy'))
+subsurface_verts = np.load(f'/tank/klundert/DMs/subsurface_verts_{subject}_hcp_NoR2.npy')
+distance_matrix = np.load(f'/tank/klundert/DMs//distance_matrix_{subject}_hcp_NoR2.npy')
+mydat_train_stim = get_cortex(np.load(f'/tank/klundert/fit_data/fit_data/data_fold2_detrend_{subject}_zsc_hcp.npy'))
 train_stim3=CFStimulus(mydat_train_stim, subsurface_verts, distance_matrix)
 modelG=CFGaussianModel(train_stim3)
 modelDN=Norm_CFGaussianModel(train_stim3)
@@ -239,6 +250,8 @@ def onclick(event):
         redraw_vertex_plots(clicked_vertex.indices[0], True)
         plt.draw()
 
+
+subject='hcp_999999'
 def onkey(event):
     print('you pressed', event.key)
     if event.key == 'alt+1':  # polar angle
@@ -310,6 +323,9 @@ cx.quickshow(cx.Vertex2D(cf_dn['rsq'], prf_dn['rsq'], subject='hcp_999999', vmin
 
 full_fig.canvas.mpl_connect('button_press_event', onclick)
 full_fig.canvas.mpl_connect('key_press_event', onkey)
+# plt.title(f'Flatmap {subject} (press 1-7 to change view)')
 plt.show()
 plt.ion()
+
+
 
