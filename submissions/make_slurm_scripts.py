@@ -3,11 +3,11 @@ import os
 import json
 import re
 
-# Point this to the template file I sent. This contains everything to be populated in between three sets of dashes (e.g. ---n---)
+# Point this to the template. This contains everything to be populated in between three sets of dashes (e.g. ---n---)
 template='/home/klundert/utils/template_2folds.sh'
-# Point this to the yaml I sent. This contains all the things that are going to be the same for each job (i.e. the email, the requested resources etc).
+# Point this to the yaml This contains all the things that are going to be the same for each job (i.e. the email, the requested resources etc).
 myyaml='/home/klundert/utils/examp_yaml.yml'
-#point this to where you want the jobscripts output
+# point this to where you want the jobscripts output
 out_dir='/home/klundert/JOBS/'
 
 
@@ -111,16 +111,10 @@ class Script_Populator:
 # Create a list of dictionaries of arguments that need to be populated dynamically.
 # Here we create a dictionary for every instance of subject and data portion
 
-#new_subs = [6,  77,  78,  79,  80,  81,  82,  83,  84,  85,  86,  87,  88,
-#        89,  90,  91,  92,  93,  94,  95,  96,  97,  98,  99, 100, 101,
-#       102, 103, 104, 105, 157, 164, 173]
-
-#prf_subs = [2, 7, 8, 13, 22, 25, 26, 28, 31]
 
 mysuppdicts=[dict({'---subject---':str(p),'---data_portion---':str(dp)}) for p in range(2) for dp in range(357)]
 
-# range(2) range(200)
-# 174 and 8
+
 
 # Now we run through a big loop that populates the template script based on everything in each dictionary and writes it to a file.
 #You can uncomment the last line to send them all to slurm (check first though).

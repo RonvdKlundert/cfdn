@@ -5,15 +5,20 @@ from cf_utils import get_cortex, split_cortex, split_given_size
 from nilearn.surface import load_surf_data
 import glob
 import cortex.polyutils
+from nibabel import cifti2
 from scipy import stats
 import numpy as np
 import scipy as sp
 import nibabel as nb
 import pickle
 from numpy.linalg import inv
+import h5py
 
 
-
+idxs = h5py.File('/tank/shared/timeless/atlases/cifti_indices.hdf5', "r")
+lidxs = np.array(idxs['Left_indices'])
+ridxs = np.array(idxs['Right_indices'])
+allidxs = np.concatenate([lidxs, ridxs])
 
 class participant:
     """Participant is a single participant, containing the timecourses of all voxels,
@@ -280,7 +285,46 @@ class participant:
         self.data_train = np.nanmean(np.array(data[::2]), axis=0)
         self.data_test = np.nanmean(np.array(data[1::2]), axis=0)
 
-                
+
+
+def write_newcifti(filename, old_cifti, data_arr):
+    """
+    Saves a CIFTI file that has a new size of timepoints
+    
+    Parameters
+    ----------
+    filename : str
+        name of output CIFTI file
+    old_cifti : CIFTI file
+        previous nibabel.cifti2.cifti2.Cifti2Image
+    data_arr : array
+        data to be stored as vector or matrix (shape: n_timepoints x n_voxels)
+        or a scalar value for each voxel (shape: n_voxels)
+    """
+
+    # in case of data_arr where you have one value for each voxel (e.g. std for each voxel)
+    if len(data_arr.shape) == 1: 
+        matrix = cifti2.Cifti2Matrix()
+        brain_model = old_cifti.header.get_axis(1)
+        matrix.append(brain_model.to_mapping(0))
+        newheader = cifti2.Cifti2Header(matrix)
+        img = cifti2.Cifti2Image(data_arr, newheader)
+        img.to_filename(filename)
+        
+    # in case of same or different 2 dimensional shape (e.g. removing first 3 TR of timeseries)
+    else:
+        start = old_cifti.header.get_axis(0).start
+        step = old_cifti.header.get_axis(0).step
+        brain_model = old_cifti.header.get_axis(1)  
+        size = data_arr.shape[0]
+        series = cifti2.SeriesAxis(start, step, size)
+        brain_model = old_cifti.header.get_axis(1)
+        newheader = cifti2.Cifti2Header.from_axes((series, brain_model))
+
+        img = cifti2.Cifti2Image(data_arr, newheader)
+        img.to_filename(filename)
+
+
         
 class Ciftihandler(object):
 
