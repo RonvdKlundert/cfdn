@@ -1,6 +1,6 @@
 import numpy as np
 import pickle
-from cftools.cf_utils import get_cortex, FormatData
+from cftools.utils import get_cortex, FormatData
 
 
 # first get the weighted average of the prf fits for both folds, these will be used for assginment 
