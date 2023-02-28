@@ -51,12 +51,12 @@ Copyright (c) 2022--, RonvdKlundert,
 Spinoza Centre for Neuroimaging, Amsterdam.
 """
 
-NAME = "cfdb"
+NAME = "cfdn"
 MAINTAINER = "RonvdKlundert"
 MAINTAINER_EMAIL = "klundertclan@hotmail.com"
 DESCRIPTION = description
 LONG_DESCRIPTION = long_description
-URL = "URL"
+URL = "https://github.com/RonvdKlundert/cfdn/"
 DOWNLOAD_URL = ""
 LICENSE = "MIT"
 AUTHOR = "RonvdKlundert"
