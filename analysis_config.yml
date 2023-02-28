@@ -1,4 +1,4 @@
-data_dir: "/home/klundert/cfdn/data/CF_fit_utils"
+data_dir: "/home/klundert/data_folds"
 save_dir_cf: "/home/klundert/cf-fit_slices"
 save_dir_pRF: "/home/klundert/prf-fit_slices"
 
