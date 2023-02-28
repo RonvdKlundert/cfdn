@@ -6,10 +6,8 @@ from prfpy.stimulus import CFStimulus
 from prfpy.model import CFGaussianModel, Norm_CFGaussianModel
 from prfpy.fit import CFFitter, Norm_CFGaussianFitter
 
-
-sys.path.append('/home/klundert/cfdn/cf-tools/')
-from preprocess import get_cortex, split_given_size
-
+from cftools.preprocess import get_cortex, split_given_size
+import os
 
 # get arguments from command line
 
@@ -24,6 +22,14 @@ sub = str(id+1)
 ########################################################################################
 # set parameters from yaml file
 ########################################################################################
+
+# get the directory where this script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# construct a path to the directory containing the files you want to load
+utils_dir = os.path.join(script_dir, '..', 'data', 'CF_fit_utils')
+
+# now you can load files from data_dir using standard Python file I/O operations
 
 yaml_dir = '/home/klundert/cfdn/analysis_config.yml'
 
@@ -51,19 +57,27 @@ masktype = analysis_info['masktype']
 data_scaling = analysis_info['data_scaling']
 
 
-subsurface_verts = np.load(f'{data_dir}/subsurface_verts_sub-0{sub}_hcp_NoR2.npy')
-distance_matrix = np.load(f'{data_dir}/distance_matrix_sub-0{sub}_hcp_NoR2.npy')
-logvisual_distance_matrix = np.load(f'{data_dir}/logvisual_distance_matrix_sub-0{sub}_hcp_NoR2.npy')
-visual_distance_matrix = np.load(f'{data_dir}/visual_distance_matrix_sub-0{sub}_hcp_NoR2.npy')
+# get the directory where this script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# get the directory where the utils are located
+utils_dir = script_dir.replace('/scripts', '/data/CF_fit_utils')
+
+
+
+subsurface_verts = np.load(f'{utils_dir}/subsurface_verts_sub-0{sub}_hcp_NoR2.npy')
+distance_matrix = np.load(f'{utils_dir}/distance_matrix_sub-0{sub}_hcp_NoR2.npy')
+logvisual_distance_matrix = np.load(f'{utils_dir}/logvisual_distance_matrix_sub-0{sub}_hcp_NoR2.npy')
+visual_distance_matrix = np.load(f'{utils_dir}/visual_distance_matrix_sub-0{sub}_hcp_NoR2.npy')
 
 
 if masktype == 'wang':
-    ROImask = np.load(f'{data_dir}/roimask_wang_hcp.npy')
+    ROImask = np.load(f'{utils_dir}/roimask_wang_hcp.npy')
     print('using the wang brainmask and drawn V1')
     print(np.sum(ROImask))
 
 elif masktype == 'NoR2':
-    ROImask = np.load(f'{data_dir}/brainmask_sub-0{sub}_NoR2.npy')
+    ROImask = np.load(f'{utils_dir}/brainmask_sub-0{sub}_NoR2.npy')
     print('using the whole brainmask and drawn V1 without applied R2 threshold')
     print(np.sum(ROImask))
 

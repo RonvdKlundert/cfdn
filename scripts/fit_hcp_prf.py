@@ -53,9 +53,14 @@ data_scaling = analysis_info['data_scaling']
 # set up constraints
 constraints_gauss, constraints_norm = [],[]
 
+# get the directory where this script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# get the directory where the utils are located
+utils_dir = script_dir.replace('/scripts', '/data/CF_fit_utils')
 
 # load design matrix
-new_dms = np.load(f'{data_dir}/prf_dm.npy')[discard_volumes:,:,:]
+new_dms = np.load(f'{utils_dir}/prf_dm.npy')[discard_volumes:,:,:]
 
 # set up stimulus object
 prf_stim = PRFStimulus2D(screen_size_cm=69, 
