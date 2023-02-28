@@ -1,3 +1,4 @@
+#data_dir is where the folds are stored that will be used for fitting
 data_dir: "/home/klundert/data_folds"
 save_dir_cf: "/home/klundert/cf-fit_slices"
 save_dir_pRF: "/home/klundert/prf-fit_slices"
@@ -23,8 +24,8 @@ n_batches: 60
 discard_volumes: 5
 
 #fitting tolerance
-xtol: 1e-5
-ftol: 1e-5
+xtol: 1e-8
+ftol: 1e-8
 
 #constraints on surround models (positive center, large surround) (trust-constr minimizer)
 constraints: True
