@@ -18,10 +18,11 @@ if _version_extra:
 
 __version__ = '.'.join(map(str, _ver))
 
+
 CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Environment :: Console",
                "Intended Audience :: Science/Research",
-               "License :: OSI Approved :: MIT",
+               "License :: OSI Approved :: MIT License",
                "Operating System :: OS Independent",
                "Programming Language :: Python",
                "Topic :: Scientific/Engineering"]
@@ -34,10 +35,10 @@ long_description = """
 cfdn
 ========
 
-[long description]
+ctools to help format and visualize divisive normalization connective fields results
 
 To get started using these components in your own software, please go to the
-repository README_.
+repository https://github.com/RonvdKlundert/cfdn/blob/master/README.md
 
 License
 =======
