@@ -38,7 +38,9 @@ cfdn
 ctools to help format and visualize divisive normalization connective fields results
 
 To get started using these components in your own software, please go to the
-repository https://github.com/RonvdKlundert/cfdn/blob/master/README.md
+repository README_.
+
+.. _README: https://github.com/RonvdKlundert/cfdn/blob/master/README.md
 
 License
 =======
