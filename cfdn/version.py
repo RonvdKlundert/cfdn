@@ -27,11 +27,11 @@ CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Topic :: Scientific/Engineering"]
 
 # Description should be a one-liner:
-description = "prfpy-cfdn: Implementation and visualization of divisive normalization connective fields"
+description = "cfdn: Implementation and visualization of divisive normalization connective fields"
 # Long description will go up on the pypi page
 long_description = """
 
-cftools
+cfdn
 ========
 
 [long description]
@@ -51,7 +51,7 @@ Copyright (c) 2022--, RonvdKlundert,
 Spinoza Centre for Neuroimaging, Amsterdam.
 """
 
-NAME = "cftools"
+NAME = "cfdb"
 MAINTAINER = "RonvdKlundert"
 MAINTAINER_EMAIL = "klundertclan@hotmail.com"
 DESCRIPTION = description
@@ -66,5 +66,5 @@ MAJOR = _version_major
 MINOR = _version_minor
 MICRO = _version_micro
 VERSION = __version__
-PACKAGE_DATA = {'cftools': [pjoin('test', 'data', '*')]}
+PACKAGE_DATA = {'cfdn': [pjoin('test', 'data', '*')]}
 REQUIRES = []

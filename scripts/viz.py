@@ -9,9 +9,8 @@ from prfpy.stimulus import CFStimulus, PRFStimulus2D
 from prfpy.model import CFGaussianModel, Norm_CFGaussianModel, Iso2DGaussianModel, Norm_Iso2DGaussianModel
 
 import numpy as np
-from cftools.utils import get_cortex
+from cfdn.utils import get_cortex
 import pickle
-import cortex as cx
 
 
 def angle(x0, y0):

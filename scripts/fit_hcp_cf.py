@@ -6,7 +6,7 @@ from prfpy.stimulus import CFStimulus
 from prfpy.model import CFGaussianModel, Norm_CFGaussianModel
 from prfpy.fit import CFFitter, Norm_CFGaussianFitter
 
-from cftools.preprocess import get_cortex, split_given_size
+from cfdn.preprocess import get_cortex, split_given_size
 import os
 
 # get arguments from command line

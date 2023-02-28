@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from .utils import get_cortex, split_cortex, split_given_size
+from cfdn.utils import get_cortex, split_cortex, split_given_size
 from nilearn.surface import load_surf_data
 import glob
 import cortex.polyutils
