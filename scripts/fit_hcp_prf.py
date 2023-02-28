@@ -9,9 +9,7 @@ from prfpy.stimulus import PRFStimulus2D
 from prfpy.model import Iso2DGaussianModel, Norm_Iso2DGaussianModel
 from prfpy.fit import Iso2DGaussianFitter, Norm_Iso2DGaussianFitter
 
-sys.path.append('/home/klundert/cfdn/cf-tools/')
-from preprocess import split_given_size # this import will change to: from cf_utils import ....
-
+from cftools.preprocess import split_given_size 
 
 # get arguments from command line
 
