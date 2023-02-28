@@ -172,7 +172,7 @@ def redraw_vertex_plots(vertex, refresh):
         timecourse_ax.clear()
 #         flatmap_ax.clear()
     timecourse_ax.axhline(0, color='black', lw=0.25)
-    timecourse_ax.plot(psc_data[vertex], 'ko', label = f'psc {vertex}')
+    timecourse_ax.plot(psc_data[vertex], 'ko', markersize=3, label = f'psc {vertex}')
     timecourse_ax.plot(gg.return_prediction(*np.array(prf_gauss)[vertex,:-1].T).T, label = 'gauss prf')
     timecourse_ax.plot(gg_norm.return_prediction(*np.array(prf_dn)[vertex,:-1].T).T, label = f'DN prf')
     timecourse_ax.legend(loc="upper left")
@@ -180,7 +180,7 @@ def redraw_vertex_plots(vertex, refresh):
     if refresh:
         timecourse_ax2.clear()
     timecourse_ax2.axhline(0, color='black', lw=0.25)
-    timecourse_ax2.plot(psc_data[vertex], 'ko', label = f'psc {vertex}')
+    timecourse_ax2.plot(psc_data[vertex], 'ko', markersize=3, label = f'psc {vertex}')
     timecourse_ax2.plot(modelG.return_prediction(*np.array(cf_gauss)[vertex,:-3].T).T, label = f'gauss cf')
     timecourse_ax2.plot(modelDN.return_prediction(*np.array(cf_dn)[vertex,:-3].T).T, label = f'DN cf')
     timecourse_ax2.legend(loc="upper left")
@@ -190,12 +190,14 @@ def redraw_vertex_plots(vertex, refresh):
 #     timecourse_ax.plot(sos, alpha=0.125, lw=3, color='gray')
 #     timecourse_ax.plot(np.roll(sos,5), alpha=0.25, ls=':', lw=3, color='gray')
 
+    # np.rot90(, k=3) because for some reason the prf is rotated 90 degrees by default which is confusing
 
-    prf = gauss2D_iso_cart(prf_space_x,
+    prf = np.rot90(gauss2D_iso_cart(prf_space_x,
                        prf_space_y,
                        [prf_dn['x'][vertex],
                         prf_dn['y'][vertex]],
-                       prf_dn['pRF size'][vertex])
+                       prf_dn['pRF size'][vertex]),
+                       k=3)
     prf_ax.clear()
     prf_ax.imshow(prf, extent=vf_extent+vf_extent, cmap='cubehelix')
     prf_ax.axvline(0, color='white', linestyle='dashed', lw=0.5)
