@@ -14,7 +14,16 @@ from numpy.linalg import inv
 import h5py
 
 
-idxs = h5py.File('/tank/shared/timeless/atlases/cifti_indices.hdf5', "r")
+# get the directory where this script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# get the directory where the utils are located
+utils_dir = script_dir.replace('/cfdn/cfdn', '/cfdn/data/CF_fit_utils')
+
+
+# add possibility to give own idxs and where to find the indices later
+# this works only on the node230 server
+idxs = h5py.File(f'{utils_dir}/cifti_indices.hdf5', "r")
 lidxs = np.array(idxs['Left_indices'])
 ridxs = np.array(idxs['Right_indices'])
 allidxs = np.concatenate([lidxs, ridxs])
