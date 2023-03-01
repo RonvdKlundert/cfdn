@@ -7,9 +7,6 @@ ver_file = os.path.join('cfdn', 'version.py')
 with open(ver_file) as f:
     exec(f.read())
 
-# Get the requirements list
-with open('requirements.txt', 'r') as f:
-    requirements = f.read().splitlines()
 
 opts = dict(name=NAME,
             maintainer=MAINTAINER,
@@ -26,8 +23,8 @@ opts = dict(name=NAME,
             version=VERSION,
             packages=PACKAGES,
             package_data=PACKAGE_DATA,
-            install_requires=requirements,
-            requires=requirements)
+            install_requires=REQUIRES,
+            requires=REQUIRES)
 
 
 

@@ -70,4 +70,4 @@ MINOR = _version_minor
 MICRO = _version_micro
 VERSION = __version__
 PACKAGE_DATA = {'cfdn': [pjoin('test', 'data', '*')]}
-REQUIRES = []
+REQUIRES = ["numpy","matplotlib","scipy","nibabel","nilearn","pandas","pyyaml","natsort","h5py"]
