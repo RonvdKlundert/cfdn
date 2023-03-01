@@ -24,10 +24,10 @@ opts = dict(name=NAME,
             version=VERSION,
             packages=PACKAGES,
             package_data=PACKAGE_DATA,
-            install_requires=REQUIRES,
-            requires=REQUIRES)
+            install_requires=requirements,
+            requires=requirements)
 
-print(opts)
 
-#if __name__ == '__main__':
-#    setup(**opts)
+
+if __name__ == '__main__':
+   setup(**opts)
