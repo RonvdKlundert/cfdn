@@ -23,11 +23,6 @@ sub = str(id+1)
 # set parameters from yaml file
 ########################################################################################
 
-# get the directory where this script is located
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# construct a path to the directory containing the files you want to load
-utils_dir = os.path.join(script_dir, '..', 'data', 'CF_fit_utils')
 
 # now you can load files from data_dir using standard Python file I/O operations
 
