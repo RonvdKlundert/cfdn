@@ -8,9 +8,6 @@ with open(ver_file) as f:
     exec(f.read())
 
 
-# Get the requirements list
-with open('requirements.txt', 'r') as f:
-    requirements = f.read().splitlines()
 
 opts = dict(name=NAME,
             maintainer=MAINTAINER,
@@ -28,7 +25,7 @@ opts = dict(name=NAME,
             packages=PACKAGES,
             package_data=PACKAGE_DATA,
             install_requires=REQUIRES,
-            requires=requirements)
+            requires=REQUIRES)
 
 print(opts)
 
