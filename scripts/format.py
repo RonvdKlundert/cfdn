@@ -2,7 +2,7 @@ import numpy as np
 import pickle
 import sys
 import os
-from cftools.utils import FormatData
+from cfdn.utils import FormatData
 
 
 # get whether to format prf or cf data from input
