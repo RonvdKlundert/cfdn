@@ -5,8 +5,8 @@
 
 #SBATCH --array=0-1
 #SBATCH -p ---p---
-#SBATCH --output=/home/klundert/cfdn/scripts/errout/%A_%a.out
-#SBATCH --error=/home/klundert/cfdn/scripts/errout/%A_%a.err
+#SBATCH --output=/home/klundert/errout/%A_%a.out
+#SBATCH --error=/home/klundert/errout/%A_%a.err
 
 #SBATCH --mail-type=END
 #SBATCH --mail-user=---email---
