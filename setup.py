@@ -7,7 +7,9 @@ ver_file = os.path.join('cfdn', 'version.py')
 with open(ver_file) as f:
     exec(f.read())
 
-
+# Get the requirements list
+with open('requirements.txt', 'r') as f:
+    requirements = f.read().splitlines()
 
 opts = dict(name=NAME,
             maintainer=MAINTAINER,
