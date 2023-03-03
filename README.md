@@ -15,10 +15,13 @@ You will need [pycortex](https://github.com/gallantlab/pycortex) to use this rep
 - [x] create interactive visualization for CF and pRF results `viz.py`
   - [] add connective field visualization to `viz.py`
 - [] recompile `prepreocess.py`, this code works but is far from good
+- [] make how to use each functionality more intuitive?
 - [] ..
 
 
-How is use it currently (beta):
+
+
+How I use it currently:
 
 1) linear detrend data and inspect using prepoc_baseline_hcp.ipynb
 2) run fit_hcp_prf.py with sbatch -> submissions folder
