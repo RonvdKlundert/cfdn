@@ -85,11 +85,11 @@ ss = prf_stim.screen_size_degrees
 # load data for this subject, split into train and test
 
 if fold == 0:
-    mydat_train_stim = np.nan_to_num(np.load(f'{data_dir}/data_fold1_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
-    mydat_test_stim = np.nan_to_num(np.load(f'{data_dir}/data_fold2_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
+    mydat_train_stim = np.nan_to_num(np.load(f'{data_dir}/sub-0{sub}/data_fold1_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
+    mydat_test_stim = np.nan_to_num(np.load(f'{data_dir}/sub-0{sub}/data_fold2_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
 else:
-    mydat_train_stim = np.nan_to_num(np.load(f'{data_dir}/data_fold2_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
-    mydat_test_stim = np.nan_to_num(np.load(f'{data_dir}/data_fold1_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
+    mydat_train_stim = np.nan_to_num(np.load(f'{data_dir}/sub-0{sub}/data_fold2_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
+    mydat_test_stim = np.nan_to_num(np.load(f'{data_dir}/sub-0{sub}/data_fold1_detrend_sub-0{sub}_{data_scaling}_hcp.npy'))
 
 brainmask = np.load(f'/home/klundert/cfdn/data/CF_fit_utils/roimask_wang_hcp.npy')
 

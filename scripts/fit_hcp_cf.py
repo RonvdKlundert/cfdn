@@ -76,11 +76,11 @@ elif masktype == 'NoR2':
 print(f'CF models to fit: {CF_models_to_fit}')
 
 if fold == 0:
-    mydat_train_stim = get_cortex(np.nan_to_num(np.load(f'{data_dir}/data_fold1_detrend_sub-0{sub}_{data_scaling}_hcp.npy')))
-    mydat_test_stim = get_cortex(np.nan_to_num(np.load(f'{data_dir}/data_fold2_detrend_sub-0{sub}_{data_scaling}_hcp.npy')))
+    mydat_train_stim = get_cortex(np.nan_to_num(np.load(f'{data_dir}/sub-0{sub}/data_fold1_detrend_sub-0{sub}_{data_scaling}_hcp.npy')))
+    mydat_test_stim = get_cortex(np.nan_to_num(np.load(f'{data_dir}/sub-0{sub}/data_fold2_detrend_sub-0{sub}_{data_scaling}_hcp.npy')))
 else:
-    mydat_train_stim = get_cortex(np.nan_to_num(np.load(f'{data_dir}/data_fold2_detrend_sub-0{sub}_{data_scaling}_hcp.npy')))
-    mydat_test_stim = get_cortex(np.nan_to_num(np.load(f'{data_dir}/data_fold1_detrend_sub-0{sub}_{data_scaling}_hcp.npy')))
+    mydat_train_stim = get_cortex(np.nan_to_num(np.load(f'{data_dir}/sub-0{sub}/data_fold2_detrend_sub-0{sub}_{data_scaling}_hcp.npy')))
+    mydat_test_stim = get_cortex(np.nan_to_num(np.load(f'{data_dir}/sub-0{sub}/data_fold1_detrend_sub-0{sub}_{data_scaling}_hcp.npy')))
 
 
 # this will discard the first 5 volumes extra!
@@ -169,7 +169,7 @@ gf_vis3.iterative_search_params[:,3] = gf_vis3.vertex_centres
 np.save(f'{save_dir_cf}/CF_cortical_sub-{sub}_fold-{fold}_slice-{slice_n}.npy', gf_vis3.iterative_search_params)
 
 
-if 'DNCF' in CF_models_to_fit:
+if 'DNCF_cortical' in CF_models_to_fit:
 
     # setup up the bounds for the iterative fit
 

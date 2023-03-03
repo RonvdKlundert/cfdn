@@ -39,7 +39,7 @@ rsq_threshold: -1
 #options: CF for gaussian, DNCF for normalization + _cortical, _visual, _logvisual for fit space
 CF_models_to_fit:
            - "CF_cortical"
-          # - "DNCF_cortical" 
+           - "DNCF_cortical" 
 
 # which mask to use, wang for only wang ROIs, NoR2 for whole brain without V1
 masktype: "wang"
