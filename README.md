@@ -15,6 +15,7 @@ You will need [pycortex](https://github.com/gallantlab/pycortex) to use this rep
 - [x] create interactive visualization for CF and pRF results `viz.py`
   - [] add connective field visualization to `viz.py`
 - [] recompile `prepreocess.py`, this code works but is far from good
+- [] upload data to figshare so when the paths to data dont exist it will download from figshare
 - [] make how to use each functionality more intuitive?
 - [] ..
 
