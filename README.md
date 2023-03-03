@@ -1,7 +1,24 @@
-# CFDN
-Tools for visualization and formatting of divisive normalization connective fields fits
+## CFDN repository
+This repository contains tools used for formatting CF and pRF fits after fitting on HPC and contains necessary tools to create design matrices for CF fitting.
 
-How is use it:
+## installation
+To use this repository you install using either run
+pip install -e . OR python setup.py develop
+
+You will need [pycortex](https://github.com/gallantlab/pycortex) to use this repository and you also need [cfpy](https://github.com/RonvdKlundert/cfpy), a fork of prfpy that contains the normalization conenctive field model
+
+
+## Policy & To Do
+
+- [x] install using `python setup.py develop` and `python -m pip install -e .`
+- [x] add Subsurface functionality to this repo, so [cfpy](https://github.com/RonvdKlundert/cfpy) can lose the pycortex depency
+- [x] create interactive visualization for CF and pRF results `viz.py`
+  - [] add connective field visualization to `viz.py`
+- [] recompile `prepreocess.py`, this code works but is far from good
+- [] ..
+
+
+How is use it currently (beta):
 
 1) linear detrend data and inspect using prepoc_baseline_hcp.ipynb
 2) run fit_hcp_prf.py with sbatch -> submissions folder
