@@ -23,10 +23,12 @@ sub = str(id+1)
 # set parameters from yaml file
 ########################################################################################
 
+# get the directory where this script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# now you can load files from data_dir using standard Python file I/O operations
-
-yaml_dir = '/home/klundert/cfdn/analysis_config.yml'
+# get the directory where the utils are located and yaml
+utils_dir = script_dir.replace('/scripts', '/data/CF_fit_utils')
+yaml_dir = script_dir.replace('/scripts', '/analysis_config.yml')
 
 with open(yaml_dir, 'r') as f:
     analysis_info = yaml.safe_load(f)
@@ -50,13 +52,6 @@ filter_predictions = analysis_info['filter_predictions']
 filter_type = analysis_info['filter_type']
 masktype = analysis_info['masktype']
 data_scaling = analysis_info['data_scaling']
-
-
-# get the directory where this script is located
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# get the directory where the utils are located
-utils_dir = script_dir.replace('/scripts', '/data/CF_fit_utils')
 
 
 

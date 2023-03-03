@@ -26,7 +26,12 @@ sub = str(id+1)
 # set parameters from yaml file
 ########################################################################################
 
-yaml_dir = '/home/klundert/cfdn/analysis_config.yml'
+# get the directory where this script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# get the directory where the utils are located and yaml
+utils_dir = script_dir.replace('/scripts', '/data/CF_fit_utils')
+yaml_dir = script_dir.replace('/scripts', '/analysis_config.yml')
 
 with open(yaml_dir, 'r') as f:
     analysis_info = yaml.safe_load(f)
@@ -53,12 +58,6 @@ data_scaling = analysis_info['data_scaling']
 
 # set up constraints
 constraints_gauss, constraints_norm = [],[]
-
-# get the directory where this script is located
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# get the directory where the utils are located
-utils_dir = script_dir.replace('/scripts', '/data/CF_fit_utils')
 
 # load design matrix
 new_dms = np.load(f'{utils_dir}/prf_dm.npy')[discard_volumes:,:,:]
