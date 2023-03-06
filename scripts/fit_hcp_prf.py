@@ -111,8 +111,8 @@ surround_baseline_grid=np.array([0.1,1.0,10.0,100.0], dtype='float32')
 
 # define the bounds of the grid
 
-gauss_grid_bounds = [(0,1000)] #only prf amplitudes between 0 and 1000
-norm_grid_bounds = [(0,1000),(0,1000)] #only prf amplitudes between 0 and 1000, only neural baseline values between 0 and 1000
+gauss_grid_bounds = [(-1000,1000)] #only prf amplitudes between 0 and 1000
+norm_grid_bounds = [(-1000,1000),(0,1000)] #only prf amplitudes between 0 and 1000, only neural baseline values between 0 and 1000
 
 
 # define bounds for the iterative fit

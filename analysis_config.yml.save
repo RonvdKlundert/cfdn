@@ -24,8 +24,8 @@ n_batches: 60
 discard_volumes: 5
 
 #fitting tolerance
-xtol: 1e-9
-ftol: 1e-9
+xtol: 1e-8
+ftol: 1e-8
 
 #constraints on surround models (positive center, large surround) (trust-constr minimizer)
 constraints: True
