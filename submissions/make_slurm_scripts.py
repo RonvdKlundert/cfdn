@@ -4,9 +4,9 @@ import json
 import re
 
 # Point this to the template. This contains everything to be populated in between three sets of dashes (e.g. ---n---)
-template='/home/klundert/utils/template_2folds.sh'
+template='/home/klundert/software/cfdn/submissions/template_2folds.sh'
 # Point this to the yaml This contains all the things that are going to be the same for each job (i.e. the email, the requested resources etc).
-myyaml='/home/klundert/utils/examp_yaml.yml'
+myyaml='/home/klundert/software/cfdn/examp_yaml.yml'
 # point this to where you want the jobscripts output
 out_dir='/home/klundert/JOBS/'
 
