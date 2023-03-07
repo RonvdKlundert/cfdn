@@ -13,5 +13,5 @@
 
 module load 2022
 
-cd /home/klundert/cfdn/scripts/
+cd /home/klundert/software/cfdn/scripts/
 python fit_fsnative_hrf_gauss.py ---subject--- 16 ---data_portion---

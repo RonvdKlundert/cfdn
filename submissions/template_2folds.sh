@@ -13,6 +13,6 @@
 
 module load 2022
 
-cd /home/klundert/cfdn/scripts/
+cd /home/klundert/software/cfdn/scripts/
 python fit_hcp_cf.py ---subject--- 16 ---data_portion--- $SLURM_ARRAY_TASK_ID
 
