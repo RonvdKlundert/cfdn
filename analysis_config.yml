@@ -3,8 +3,8 @@ data_dir: "/home/klundert/data_folds"
 save_dir_cf: "/home/klundert/cf-fit_slices"
 save_dir_pRF: "/home/klundert/prf-fit_slices"
 
-#general settings
-data_scaling: "psc"
+#general settings 
+data_scaling: "zsc"
 
 subjects:
         - 1
